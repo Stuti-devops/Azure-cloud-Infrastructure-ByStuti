@@ -1,0 +1,3 @@
+variable "child_nic" {
+  
+}

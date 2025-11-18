@@ -1,0 +1,105 @@
+trigger: 
+- feature/*
+- main
+
+pool: 
+ name: Default 
+
+variables:
+  workDir: '$(System.DefaultWorkingDirectory)/enviroment/Dev'
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:       
+  - job: TerraformInitPlan
+    displayName: Terraform Init and Plan Job
+    steps: 
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: 'latest'
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(workDir)'
+        backendServiceArm: 'stuti-azure-iac-infra'
+        backendAzureRmResourceGroupName: 'stutiRgfrpipeline'
+        backendAzureRmStorageAccountName: 'stutipipelinestg'
+        backendAzureRmContainerName: 'stutipipelinecontainer'
+        backendAzureRmKey: 'stutipipeline.tfstate'
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+     
+  - job: TerraformPlan
+    displayName: Terraform Plan Job
+    steps:
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(workDir)'
+        environmentServiceNameAzureRM: 'stuti-azure-iac-infra'
+
+#  ---scanning code----------  
+
+- stage: Scanning
+  displayName: Scanning
+  jobs: 
+  - job: TFSecScanningJob
+    displayName: TFSEC Scanning Wala Job
+    pool: Default
+    steps:
+    - task: tfsec@1
+      inputs:
+        version: 'v1.26.0'
+        dir: $(workDir)
+
+  - job: TfLintScanningJob
+    displayName: TFLINT Scanning Wala Job
+    pool: Default
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: 'Running Infra Pipeline'
+# ------------------------------------------------------------------------
+- stage: Deploy
+  displayName: Deploy
+  condition: eq(variables['Build.SourceBranch'], 'main')
+  jobs: 
+  - job: ManualValidation
+    displayName: Manual Validation kardo Please
+    pool: server
+    steps:
+    - task: ManualValidation@1
+      inputs:
+        notifyUsers: 'stutiSrivastava@shrutibawase16gmail.onmicrosoft.com'
+        approvers: 'stutiSrivastava@shrutibawase16gmail.onmicrosoft.com'
+        instructions: 'Plan to check pipeline'
+
+
+  - job: TerraformApply
+    displayName: Terraform Apply Job
+    dependsOn: ManualValidation
+        
+      
+    steps:
+      - task: TerraformTask@5
+        inputs:
+         provider: 'azurerm'
+         command: 'init'
+         workingDirectory: $(workDir)
+         backendServiceArm: 'stuti-azure-iac-infra'
+         backendAzureRmStorageAccountName: 'stutipipelinestg'
+         backendAzureRmContainerName:  'stutipipelinecontainer'
+         backendAzureRmKey:  'stutipipeline.tfstate'
+  
+      - task: TerraformTask@5
+        inputs:
+         provider: 'azurerm'
+         command: 'apply'
+         workingDirectory: $(workDir)
+         environmentServiceNameAzureRM: 'stuti-azure-iac-infra'
