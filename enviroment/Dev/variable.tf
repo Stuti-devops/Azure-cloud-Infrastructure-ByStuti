@@ -33,3 +33,10 @@ variable "root_sqldatabase" {
   # }))
 }
 
+variable "root_aks" {
+  
+}
+variable "root_ACR" {
+  
+}
+
