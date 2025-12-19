@@ -3,6 +3,10 @@ root_rg = {
         resource_group_name = "TodoAppinfra11"
         location = "West Europe"
     }
+  rg2={
+        resource_group_name = "microappstuti"
+        location = "West Europe"
+    }
     
 }
 root_stg = {
@@ -130,3 +134,31 @@ root_vmstodo = {
      
  
     }
+root_aks = {
+      aks1={
+        akscluster_name = "aks-demo-cluster"
+  location = "West Europe"
+  resource_group_name = "microappstuti"
+  dns_prefix = "aksdemocluster"
+  # node_pool =[{
+    default_Pool_name = "default"
+    node_count =  "2"
+    vm_size = "Standard_D2s_v3"
+  }
+  # ]
+  # identity {
+  #   type = each.value.type
+  # }
+
+      }
+    # }
+   root_ACR  ={
+      acr1={
+          name  = "stuti123"
+    resource_group_name = "microappstuti"
+    location            = "West Europe"
+    sku                 = "Standard"
+    admin_enabled       = "true"
+      }
+    }
+
