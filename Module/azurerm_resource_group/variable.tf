@@ -1,1 +1,3 @@
-variable child_rg{}
+variable "rg" {
+  
+}
